@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const pool = require('../connection-pool')
+const bcrypt = require('bcrypt');
 const secretKey = config.jwtSecretKey;
 
 const getUser = (req, res) => {
@@ -16,17 +17,19 @@ const getUser = (req, res) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 
-    const query = `select Id,Email from users where Email=? and Password=?`;
-    connection.query(query, [email, password],(error, results) => {
+    const query = `select Id,Email, Password from users where Email=?`;
+    connection.query(query, [email],(error, results) => {
       connection.release();
-
+      const plainTextPassword = password;
       if (error) {
         console.error('Error executing MySQL query:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });
       }
      
       if (results.length > 0) {
-        const user = { email, userId: results[0].Id };
+        bcrypt.compare(plainTextPassword, results[0].Password, (err, result) => {
+          if (result) {
+            const user = { email, userId: results[0].Id };
         const token = jwt.sign(user, secretKey, { expiresIn: '1h' }); 
 
         res.json({
@@ -34,8 +37,13 @@ const getUser = (req, res) => {
             message: 'User authenticated successfully',
             token,
         });
+          } else {
+            res.json({success:false, message: 'Password is incorrect'})
+          }
+        });
+        
     } else{
-      res.status(400).json({success: false, message: 'Email or password is incorrect'})
+      res.status(400).json({success: false, message: 'Email is incorrect'})
     }
     
     });
