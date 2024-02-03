@@ -13,10 +13,6 @@ const port = 3001;
 app.use(cors()); 
 app.use(express.json());
 
-
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
 app.post('/register-user',registerUser);
 app.get('/get-user', getUser);
 app.get('/get-services',verifyToken, getServices);

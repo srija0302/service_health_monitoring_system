@@ -9,7 +9,7 @@ const updateService = (req, res) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 
-    const updateQuery = 'UPDATE services SET status = ? WHERE id = ?';
+    const updateQuery = 'UPDATE services SET status = ?, timestamp=NOW() WHERE id = ?';
     connection.query(updateQuery, [status, id], (updateError, updateResults) => {
       if (updateError) {
         connection.release();
