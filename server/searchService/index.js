@@ -19,16 +19,14 @@ const searchService = (req, res) => {
     currentDate.setHours(23);
     currentDate.setMinutes(59);
     const query = `
-    SELECT s.id, s.name, sl.timestamp , s.status
+    SELECT s.id, s.name, sl_max.timestamp , s.status
     FROM services s
     JOIN (
         SELECT service_id, MAX(timestamp) AS timestamp
         FROM service_logs
         WHERE status = 'down' AND timestamp BETWEEN DATE_SUB(?, INTERVAL 30 DAY) AND ?
         GROUP BY service_id
-    ) sl_max ON s.id = sl_max.service_id
-    JOIN service_logs sl ON sl.service_id = s.id AND sl.timestamp = sl_max.timestamp`;
-    //WHERE s.status = 'down'`;
+    ) sl_max ON s.id = sl_max.service_id`;
     connection.query(query, [currentDate, currentDate], (error, results) => {
       connection.release();
 
